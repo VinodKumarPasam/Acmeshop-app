@@ -2,6 +2,10 @@
   "name": "acmeshop-order-service",
   "version": "1.0.0",
   "type": "commonjs",
+  
+   "engines": {
+    "node": ">=22 <23"
+  },
 
   "scripts": {
     "start": "node src/app.js",
