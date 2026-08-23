@@ -30,4 +30,10 @@ router.delete(
     cartController.removeCartItem
 );
 
+router.delete(
+    "/",
+    authenticate,
+    cartController.clearCart
+);
+
 module.exports = router;

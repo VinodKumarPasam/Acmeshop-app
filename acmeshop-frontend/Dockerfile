@@ -7,6 +7,7 @@ RUN npm run build
 
 #stage 2
 FROM nginx:alpine
+COPY nginx.conf /etc/nginx/conf.d/default.conf
 WORKDIR /usr/share/nginx/html
 # Copy the static production assets from the 'builder' stage
 COPY --from=builder /frontend/dist .

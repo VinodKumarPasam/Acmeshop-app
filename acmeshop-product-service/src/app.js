@@ -2,7 +2,6 @@
 const express = require("express");
 const cors = require("cors");
 
-
 // Create Express App
 const app = express();
 app.use(
@@ -13,10 +12,10 @@ app.use(
 
 // Import Routes
 const productRoutes = require("./routes/productRoutes");
+const errorHandler = require("./middleware/errorHandler");
 
 // Middleware to parse JSON body
 app.use(express.json());
-
 
 // Register Product Routes
 app.use(
@@ -30,6 +29,9 @@ app.get("/health", (req, res) => {
     status: "UP"
   });
 });
+
+// Centralized error handler
+app.use(errorHandler);
 
 // Start Server
 app.listen(3001, () => {

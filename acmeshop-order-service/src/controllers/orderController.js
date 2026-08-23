@@ -1,44 +1,22 @@
 const orderService = require("../services/orderService");
 
-async function checkout(req, res) {
-
+async function checkout(req, res, next) {
     try {
-
-        const order = await orderService.checkout(req.user.userId);
-
+        const authHeader = req.headers.authorization;
+        const order = await orderService.checkout(req.user.userId, authHeader);
         res.status(201).json(order);
-
     } catch (err) {
-
-        console.error("Checkout Error:");
-        console.error(err);
-
-        res.status(500).json({
-            error: err.message
-        });
-
+        next(err);
     }
-
 }
 
-async function getOrders(req, res) {
-
+async function getOrders(req, res, next) {
     try {
-
         const orders = await orderService.getOrders(req.user.userId);
-
         res.json(orders);
-
     } catch (err) {
-
-        console.error(err);
-
-        res.status(500).json({
-            error: err.message
-        });
-
+        next(err);
     }
-
 }
 
 module.exports = {

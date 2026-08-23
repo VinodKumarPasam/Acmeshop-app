@@ -7,9 +7,17 @@ function Cart() {
 
   async function loadCart() {
 
-    const res = await cartApi.get("/");
+    try {
 
-    setCartItems(res.data);
+      const res = await cartApi.get("/");
+
+      setCartItems(res.data);
+
+    } catch (err) {
+
+      console.error(err);
+
+    }
 
   }
 
@@ -22,9 +30,7 @@ function Cart() {
   async function increase(item) {
 
     await cartApi.patch(`/${item.id}`, {
-
       quantity: item.quantity + 1
-
     });
 
     loadCart();
@@ -34,9 +40,7 @@ function Cart() {
   async function decrease(item) {
 
     await cartApi.patch(`/${item.id}`, {
-
       quantity: item.quantity - 1
-
     });
 
     loadCart();
@@ -55,9 +59,7 @@ function Cart() {
 
     return cartItems.reduce(
 
-      (sum, item) =>
-
-        sum + item.price * item.quantity,
+      (sum, item) => sum + Number(item.price) * item.quantity,
 
       0
 
@@ -71,15 +73,15 @@ function Cart() {
 
       await orderApi.post("/");
 
-      alert("Order Created");
+      alert("✅ Order Created");
 
       loadCart();
 
-    }
+    } catch (err) {
 
-    catch(err){
+      console.error(err);
 
-      alert("Checkout Failed");
+      alert("❌ Checkout Failed");
 
     }
 
@@ -87,13 +89,13 @@ function Cart() {
 
   return (
 
-    <div style={{padding:"40px"}}>
+    <div style={{ padding: "40px" }}>
 
       <h1>Your Cart</h1>
 
       {
 
-        cartItems.length===0 &&
+        cartItems.length === 0 &&
 
         <h3>Cart Empty</h3>
 
@@ -101,59 +103,86 @@ function Cart() {
 
       {
 
-        cartItems.map(item=>(
+        cartItems.map((item) => (
 
           <div
 
-          key={item.id}
-
-          style={{
-
-            background:"#1E293B",
-
-            color:"white",
-
-            padding:"25px",
-
-            borderRadius:"10px",
-
-            marginBottom:"25px"
-
-          }}
-
-          >
-
-            <h2>{item.name}</h2>
-
-            <p>{item.description}</p>
-
-            <h3>
-
-              Price :
-
-              ₹ {item.price}
-
-            </h3>
-
-            <div
+            key={item.id}
 
             style={{
 
-              display:"flex",
+              background: "#1E293B",
 
-              alignItems:"center",
+              color: "white",
 
-              gap:"15px",
+              padding: "25px",
 
-              marginTop:"20px"
+              borderRadius: "10px",
+
+              marginBottom: "25px"
 
             }}
+
+          >
+
+            <div
+              style={{
+                display: "flex",
+                gap: "20px",
+                alignItems: "center"
+              }}
+            >
+
+              <img
+                src={`/images/${item.image}`}
+                alt={item.name}
+                style={{
+                  width: "150px",
+                  height: "150px",
+                  objectFit: "contain",
+                  background: "white",
+                  borderRadius: "10px",
+                  padding: "10px"
+                }}
+              />
+
+              <div>
+
+                <h2>{item.name}</h2>
+
+                <p>{item.description}</p>
+
+                <h3>
+
+                  Price :
+
+                  ₹ {Number(item.price).toLocaleString("en-IN")}
+
+                </h3>
+
+              </div>
+
+            </div>
+
+            <div
+
+              style={{
+
+                display: "flex",
+
+                alignItems: "center",
+
+                gap: "15px",
+
+                marginTop: "20px"
+
+              }}
 
             >
 
               <button
 
-              onClick={()=>decrease(item)}
+                onClick={() => decrease(item)}
 
               >
 
@@ -169,7 +198,7 @@ function Cart() {
 
               <button
 
-              onClick={()=>increase(item)}
+                onClick={() => increase(item)}
 
               >
 
@@ -183,25 +212,25 @@ function Cart() {
 
               Subtotal :
 
-              ₹ {item.quantity*item.price}
+              ₹ {(Number(item.price) * item.quantity).toLocaleString("en-IN")}
 
             </h3>
 
             <button
 
-            onClick={()=>removeItem(item.id)}
+              onClick={() => removeItem(item.id)}
 
-            style={{
+              style={{
 
-              background:"red",
+                background: "red",
 
-              color:"white",
+                color: "white",
 
-              padding:"10px",
+                padding: "10px",
 
-              marginTop:"15px"
+                marginTop: "15px"
 
-            }}
+              }}
 
             >
 
@@ -215,35 +244,35 @@ function Cart() {
 
       }
 
-      <hr/>
+      <hr />
 
       <h2>
 
         Grand Total :
 
-        ₹ {total()}
+        ₹ {total().toLocaleString("en-IN")}
 
       </h2>
 
       {
 
-        cartItems.length>0 &&
+        cartItems.length > 0 &&
 
         <button
 
-        onClick={checkout}
+          onClick={checkout}
 
-        style={{
+          style={{
 
-          padding:"15px",
+            padding: "15px",
 
-          background:"#2563EB",
+            background: "#2563EB",
 
-          color:"white",
+            color: "white",
 
-          marginTop:"20px"
+            marginTop: "20px"
 
-        }}
+          }}
 
         >
 

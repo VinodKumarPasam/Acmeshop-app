@@ -1,109 +1,74 @@
 const pool = require("../config/db");
-
 const orderModel = require("../models/orderModel");
+const cartClient = require("../clients/cartClient");
 
-async function checkout(userId) {
+async function checkout(userId, authHeader) {
+  // Fetch cart items from Cart Service
+  const cartItems = await cartClient.getCart(authHeader);
 
-    // Read Cart
+  if (!cartItems || cartItems.length === 0) {
+    const error = new Error("Cart is empty");
+    error.status = 400;
+    throw error;
+  }
 
-    const cart = await pool.query(
+  // Calculate Total
+  let total = 0;
+  cartItems.forEach(item => {
+    total += item.quantity * Number(item.price);
+  });
 
-        `
+  // Start Transaction in orders_db
+  const client = await pool.connect();
+  let order;
+  try {
+    await client.query("BEGIN");
 
-        SELECT
-
-        c.product_id,
-
-        c.quantity,
-
-        p.price
-
-        FROM cart_items c
-
-        JOIN products p
-
-        ON c.product_id=p.id
-
-        WHERE c.user_id=$1;
-
-        `,
-
-        [userId]
-
+    // Insert Order
+    const orderRes = await client.query(
+      `
+      INSERT INTO orders (user_id, total)
+      VALUES ($1, $2)
+      RETURNING *;
+      `,
+      [userId, total]
     );
+    order = orderRes.rows[0];
 
-    const items = cart.rows;
-
-    if (items.length === 0) {
-
-        throw new Error("Cart Empty");
-
+    // Insert Order Items
+    for (const item of cartItems) {
+      await client.query(
+        `
+        INSERT INTO order_items (order_id, product_id, quantity, price)
+        VALUES ($1, $2, $3, $4);
+        `,
+        [order.id, item.product_id, item.quantity, Number(item.price)]
+      );
     }
 
-    // Calculate Total
+    await client.query("COMMIT");
+  } catch (err) {
+    await client.query("ROLLBACK");
+    throw err;
+  } finally {
+    client.release();
+  }
 
-    let total = 0;
+  // Clear Cart via Cart Service API
+  try {
+    await cartClient.clearCart(authHeader);
+  } catch (clearErr) {
+    console.error("Failed to clear cart:", clearErr.message);
+  }
 
-    items.forEach(item => {
-
-        total += item.quantity * item.price;
-
-    });
-
-    // Create Order
-
-    const order = await orderModel.createOrder(
-
-        userId,
-
-        total
-
-    );
-
-    // Insert Items
-
-    for (const item of items) {
-
-        await orderModel.addOrderItem(
-
-            order.id,
-
-            item
-
-        );
-
-    }
-
-    // Clear Cart
-
-    await pool.query(
-
-        `
-
-        DELETE FROM cart_items
-
-        WHERE user_id=$1;
-
-        `,
-
-        [userId]
-
-    );
-
-    return order;
-
+  return order;
 }
 
 async function getOrders(userId) {
-
-    return await orderModel.getOrders(userId);
-
+  return await orderModel.getOrders(userId);
 }
 
 module.exports = {
-
-    checkout,
-
-    getOrders
-
+  checkout,
+  getOrders
 };

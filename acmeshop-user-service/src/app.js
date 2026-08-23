@@ -1,8 +1,8 @@
 const express = require("express");
 const cors = require("cors");
 
-const userRoutes =
-require("./routes/userRoutes");
+const userRoutes = require("./routes/userRoutes");
+const errorHandler = require("./middleware/errorHandler");
 
 const app = express();
 
@@ -23,6 +23,9 @@ app.get("/health", (req, res) => {
     status: "UP",
   });
 });
+
+// Centralized error handler
+app.use(errorHandler);
 
 app.listen(3000, () => {
   console.log(

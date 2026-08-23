@@ -67,35 +67,19 @@ async function getCartByUserId(userId) {
   const result = await pool.query(
     `
     SELECT
-
-      c.id,
-
-      c.quantity,
-
-      p.id AS product_id,
-
-      p.name,
-
-      p.description,
-
-      p.price
-
-    FROM cart_items c
-
-    JOIN products p
-      ON c.product_id = p.id
-
-    WHERE c.user_id = $1
-
-    ORDER BY c.id;
+      id,
+      product_id,
+      quantity
+    FROM cart_items
+    WHERE user_id = $1
+    ORDER BY id;
     `,
     [userId]
   );
 
   return result.rows;
 
-}
-// Update quantity of a cart item
+}// Update quantity of a cart item
 async function updateQuantity(id, quantity) {
 
   // Quantity becomes zero
@@ -148,6 +132,19 @@ async function removeCartItem(id) {
 
 }
 
+// Clear Cart by User ID
+async function clearCartByUserId(userId) {
+  const result = await pool.query(
+    `
+    DELETE FROM cart_items
+    WHERE user_id = $1
+    RETURNING *;
+    `,
+    [userId]
+  );
+  return result.rows;
+}
+
 module.exports = {
 
   addToCart,
@@ -156,6 +153,8 @@ module.exports = {
 
   updateQuantity,
 
-  removeCartItem
+  removeCartItem,
+
+  clearCartByUserId
 
 };

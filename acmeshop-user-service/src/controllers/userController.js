@@ -1,85 +1,42 @@
 const userService = require("../services/userService");
 
-async function signup(req, res) {
-
+async function signup(req, res, next) {
   try {
-
     const user = await userService.signup(req.body);
-
     return res.status(201).json({
       message: "User created successfully",
       user,
     });
-
   } catch (err) {
-
-    console.error(err);
-
-    return res.status(500).json({
-      error: "Internal Server Error",
-    });
-
+    next(err);
   }
 }
-async function login(req, res) {
 
+async function login(req, res, next) {
   try {
-
-    // Extract email and password
     const { email, password } = req.body;
-
-    // Call service
-    const token =
-      await userService.login(
-        email,
-        password
-      );
-
-    // Return JWT
+    const token = await userService.login(email, password);
     return res.json({
       token
     });
-
   } catch (err) {
-
-    return res.status(401).json({
-      error: err.message
-    });
-
+    err.status = 401; // Unauthorized for invalid credentials
+    next(err);
   }
 }
-// Return fresh profile data
-async function profile(req, res) {
 
+async function profile(req, res, next) {
   try {
-
-    // Get userId from JWT
-    const userId =
-      req.user.userId;
-
-    // Fetch from database
-    const user =
-      await userService.getProfile(
-        userId
-      );
-
+    const userId = req.user.userId;
+    const user = await userService.getProfile(userId);
     return res.json({
-
-      message:
-        "Profile fetched successfully",
-
+      message: "Profile fetched successfully",
       user
-
     });
-
   } catch (err) {
-
-    return res.status(404).json({
-      error: err.message
-    });
-
+    err.status = 404; // Not Found if user profile is missing
+    next(err);
   }
-
 }
 
 module.exports = {

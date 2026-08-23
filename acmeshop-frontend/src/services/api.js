@@ -50,17 +50,17 @@ function createApi(baseURL) {
 }
 
 export const userApi = createApi(
-  "http://localhost:3000/api/v1/users"
+  import.meta.env.VITE_USER_SERVICE_URL || "http://localhost:3000/api/v1/users"
 );
 
 export const productApi = createApi(
-  "http://localhost:3001/api/v1/products"
+  import.meta.env.VITE_PRODUCT_SERVICE_URL || "http://localhost:3001/api/v1/products"
 );
 
 export const cartApi = createApi(
-  "http://localhost:3002/api/v1/cart"
+  import.meta.env.VITE_CART_SERVICE_URL || "http://localhost:3002/api/v1/cart"
 );
 
 export const orderApi = createApi(
-  "http://localhost:3003/api/v1/orders"
+  import.meta.env.VITE_ORDER_SERVICE_URL || "http://localhost:3003/api/v1/orders"
 );
