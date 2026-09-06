@@ -7,11 +7,12 @@ pipeline {
                 echo 'AcmeShop CI pipeline is running'
             }
         }
+
         stage('Inspect') {
             steps {
-                    sh 'pwd'
-                    sh 'ls -la'
+                sh 'pwd'
+                sh 'ls -la'
+            }
+        }
     }
-    }
-    }       
 }
