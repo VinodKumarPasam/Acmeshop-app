@@ -1,18 +1,16 @@
 pipeline {
+
     agent any
 
     stages {
-        stage('Test') {
-            steps {
-                echo 'AcmeShop CI pipeline is running'
-            }
-        }
 
-        stage('Inspect') {
+        stage ("build-user-service") {
+
             steps {
-                sh 'pwd'
-                sh 'ls -la'
+
+                sh ''' 
+                     docker build -t acmeshop-user-service:test ./acmeshop-user-service
+                '''
             }
         }
     }
-}

@@ -7,5 +7,5 @@ COPY --chown=node:node src ./src
 RUN chmod -R 755 src
 USER node
 ENV NODE_ENV=production
-EXPOSE 3000
+EXPOSE 3001
 CMD ["node","src/app.js"]
