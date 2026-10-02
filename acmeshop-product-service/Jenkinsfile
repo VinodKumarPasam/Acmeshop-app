@@ -53,6 +53,7 @@ pipeline {
             '''
         }
     }
+    }
 post {
     success {
         echo "Docker image pushed successfully to ECR: ${ECR_Registry}/${ECR_Repository}:${IMAGE_TAG}"
@@ -60,6 +61,5 @@ post {
     failure {
         echo "Docker image push failed. Please check the logs for details."
     }
-}
 }
 }
