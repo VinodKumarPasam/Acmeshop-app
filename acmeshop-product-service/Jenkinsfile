@@ -17,6 +17,14 @@ pipeline {
 
             }
         }
+         stage ('set image tag') {
+            steps {
+                script {
+                    env.IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                }
+            }
+        }
+        
         stage ('build-product-service') {
             steps {
                 dir('acmeshop-product-service') {
@@ -24,13 +32,6 @@ pipeline {
                     docker build -t ${ECR_Registry}/${ECR_Repository}:${IMAGE_TAG} .   
                     
                     '''
-                }
-            }
-        }
-        stage ('set image tag') {
-            steps {
-                script {
-                    env.IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
                 }
             }
         }
