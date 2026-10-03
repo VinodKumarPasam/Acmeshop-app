@@ -1,5 +1,6 @@
 pipeline {
     agent any
+
     environment {
         GIT_URL = 'git@github.com:VinodKumarPasam/Acmeshop-app.git'
         GIT_BRANCH = 'develop'
@@ -8,51 +9,72 @@ pipeline {
     }
 
     stages {
-        stage ("git checkout") {
+
+        stage("git checkout") {
             steps {
-                git branch: "${GIT_BRANCH}", url: "${GIT_URL}",
-                credentialsId: 'github-acmeshop-jenkins'
+                git branch: "${GIT_BRANCH}",
+                    url: "${GIT_URL}",
+                    credentialsId: 'github-acmeshop-jenkins'
             }
         }
 
-        stage ('set image tag') {
+        stage('set image tag') {
             steps {
                 script {
-                    env.IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
+                    env.IMAGE_TAG = sh(
+                        script: "git rev-parse --short HEAD",
+                        returnStdout: true
+                    ).trim()
+
                     echo "IMAGE_TAG = ${env.IMAGE_TAG}"
                 }
             }
         }
 
-        stage ('build-frontend') {
+        stage('build-frontend-service') {
             steps {
                 dir('acmeshop-frontend') {
                     sh '''
-                    docker build -t ${ECR_Registry}/${ECR_Repository}:${IMAGE_TAG} .   
+                        docker build \
+                        -t ${ECR_Registry}/${ECR_Repository}:${IMAGE_TAG} .
                     '''
                 }
             }
         }
 
-        stage ('ECR login') {
+        stage('ECR login') {
             steps {
-                withCredentials([ 
-                    [$class : 'AmazonWebServicesCredentialsBinding',
-                    credentialsId: 'aws configure']
-                    ]) {
+                withCredentials([
+                    [$class: 'AmazonWebServicesCredentialsBinding',
+                     credentialsId: 'aws configure']
+                ]) {
                     sh '''
-                        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ECR_Registry}
+                        aws ecr get-login-password \
+                        --region us-east-1 |
+                        docker login \
+                        --username AWS \
+                        --password-stdin ${ECR_Registry}
                     '''
+                }
             }
         }
-   }
-post {
-    success {
-        echo "Docker image pushed successfully to ECR: ${ECR_Registry}/${ECR_Repository}:${IMAGE_TAG}"
+
+        stage('Docker image push') {
+            steps {
+                sh '''
+                    docker push ${ECR_Registry}/${ECR_Repository}:${IMAGE_TAG}
+                '''
+            }
+        }
     }
-    failure {
-        echo "Docker image push failed. Please check the logs for details."
+
+    post {
+        success {
+            echo "Docker image pushed successfully to ECR: ${ECR_Registry}/${ECR_Repository}:${IMAGE_TAG}"
+        }
+
+        failure {
+            echo "Docker image push failed. Please check the logs for details."
+        }
     }
-}
-}   
 }
