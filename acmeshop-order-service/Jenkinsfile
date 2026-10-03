@@ -1,23 +1,22 @@
 pipeline {
-    agent any
+    agent any 
+
     environment {
         GIT_URL = 'git@github.com:VinodKumarPasam/Acmeshop-app.git'
-        AWS_Region = 'us-east-1'
-        ECR_Registry = '818957473542.dkr.ecr.us-east-1.amazonaws.com'
-        ECR_Repository = 'acmeshop/product-service'
         GIT_BRANCH = 'develop'
+        ECR_Registry = '818957473542.dkr.ecr.us-east-1.amazonaws.com'
+        ECR_Repository = 'acmeshop/order-service'
     }
-    stages 
-    {
+
+    stages {
         stage ("git checkout") {
             steps {
                 git branch: "${GIT_BRANCH}", url: "${GIT_URL}",
                 credentialsId: 'github-acmeshop-jenkins'
-
-
             }
         }
-         stage ('set image tag') {
+
+        stage ('set image tag') {
             steps {
                 script {
                     env.IMAGE_TAG = sh(script: "git rev-parse --short HEAD", returnStdout: true).trim()
@@ -26,16 +25,16 @@ pipeline {
             }
         }
 
-        stage ('build-product-service') {
+        stage ('build-order-service') {
             steps {
-                dir('acmeshop-product-service') {
+                dir('acmeshop-order-service') {
                     sh '''
                     docker build -t ${ECR_Registry}/${ECR_Repository}:${IMAGE_TAG} .   
-                    
                     '''
                 }
             }
         }
+
         stage ('ECR login') {
             steps {
                 withCredentials([ 
@@ -43,18 +42,10 @@ pipeline {
                     credentialsId: 'aws configure']
                     ]) {
                     sh '''
-                        aws ecr get-login-password --region ${AWS_Region} | docker login --username AWS --password-stdin ${ECR_Registry}
+                        aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin ${ECR_Registry}
                     '''
             }
         }
-    }
-    stage ('Docker image push') {
-        steps {
-            sh '''
-                docker push ${ECR_Registry}/${ECR_Repository}:${IMAGE_TAG}
-            '''
-        }
-    }
     }
 post {
     success {
@@ -64,4 +55,5 @@ post {
         echo "Docker image push failed. Please check the logs for details."
     }
 }
+}    
 }
